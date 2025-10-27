@@ -75,22 +75,19 @@
         <iframe src="../footer.html" frameborder="0"></iframe>
     </footer>
 
-    <script type="text/javascript" src="./../../jquery-3.6.3.min.js"></script>
-    <script type="text/javascript" src="./../../jquery-ui.min.js"></script>
     <script>
-        $(function() {
-            $.ajax({
-                url: '/api/auth/user',
-                type: 'get',
-                error: function(xhr) {
-                    if (xhr.status === 401) {
-                        window.location.href = '/api/login';
-                    }
+        // Check authentication
+        fetch('/api/auth/user')
+            .then(response => {
+                if (!response.ok) {
+                    window.location.href = '/api/login';
                 }
+            })
+            .catch(() => {
+                window.location.href = '/api/login';
             });
-        });
     </script>
     <script src="../../scripts/quadros.js"></script>
-    <script type="text/javascript" src="./../../dragAndDrop.js"></script>
+    <script src="../../scripts/dragAndDrop.js"></script>
 </body>
 </html>

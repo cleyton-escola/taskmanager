@@ -25,26 +25,27 @@
         </div>
     </main>
     
-    <script type="text/javascript" src="jquery-3.6.3.min.js"></script>
     <script>
-        $(function() {
-            $.ajax({
-                url: '/api/auth/user',
-                type: 'get',
-                success: function(user) {
-                    if (user && user.id) {
-                        window.location.href = '/pages/quadros/index.html';
-                    } else {
-                        $('#loading').hide();
-                        $('#landing-page').show();
-                    }
-                },
-                error: function() {
-                    $('#loading').hide();
-                    $('#landing-page').show();
+        // Check authentication status
+        fetch('/api/auth/user')
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
                 }
+                throw new Error('Not authenticated');
+            })
+            .then(user => {
+                if (user && user.id) {
+                    window.location.href = '/pages/quadros/index.html';
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('landing-page').style.display = 'block';
+                }
+            })
+            .catch(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('landing-page').style.display = 'block';
             });
-        });
     </script>
 </body>
 </html>
