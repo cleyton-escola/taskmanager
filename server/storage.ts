@@ -29,6 +29,19 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  async ensureDefaultUser(): Promise<void> {
+    const defaultUserId = "default-user";
+    const existingUser = await this.getUser(defaultUserId);
+    if (!existingUser) {
+      await this.upsertUser({
+        id: defaultUserId,
+        email: "default@example.com",
+        firstName: "Default",
+        lastName: "User",
+      });
+    }
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;

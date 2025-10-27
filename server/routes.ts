@@ -1,26 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+
+const DEFAULT_USER_ID = "default-user";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  await setupAuth(app);
-
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/quadros', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  app.get('/api/quadros', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const userQuadros = await storage.getQuadros(userId);
+      const userQuadros = await storage.getQuadros(DEFAULT_USER_ID);
       res.json(userQuadros);
     } catch (error) {
       console.error("Error fetching quadros:", error);
@@ -28,9 +15,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quadros/new', isAuthenticated, async (req: any, res) => {
+  app.post('/api/quadros/new', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { description } = req.body;
       
       if (!description) {
@@ -38,7 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const newQuadro = await storage.createQuadro({
-        userId,
+        userId: DEFAULT_USER_ID,
         description,
       });
       
@@ -49,9 +35,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quadros/update/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/api/quadros/update/:id', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { description } = req.body;
 
@@ -59,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Description is required" });
       }
 
-      const updated = await storage.updateQuadro(id, userId, description);
+      const updated = await storage.updateQuadro(id, DEFAULT_USER_ID, description);
       
       if (!updated) {
         return res.status(404).json({ error: "Quadro not found" });
@@ -72,12 +57,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/quadros/delete/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/quadros/delete/:id', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { id } = req.params;
 
-      const deleted = await storage.deleteQuadro(id, userId);
+      const deleted = await storage.deleteQuadro(id, DEFAULT_USER_ID);
       
       if (!deleted) {
         return res.status(404).json({ error: "Quadro not found" });
@@ -90,11 +74,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/tarefas/card/:quadroId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/tarefas/card/:quadroId', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { quadroId } = req.params;
-      const tarefas = await storage.getTarefasByQuadro(quadroId, userId);
+      const tarefas = await storage.getTarefasByQuadro(quadroId, DEFAULT_USER_ID);
       res.json(tarefas);
     } catch (error) {
       console.error("Error fetching tarefas:", error);
@@ -102,9 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/tarefas/new', isAuthenticated, async (req: any, res) => {
+  app.post('/api/tarefas/new', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { description, quadroId } = req.body;
 
       if (!description || !quadroId) {
@@ -114,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newTarefa = await storage.createTarefa({
         description,
         quadroId,
-      }, userId);
+      }, DEFAULT_USER_ID);
       
       if (!newTarefa) {
         return res.status(404).json({ error: "Quadro not found or access denied" });
@@ -127,9 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/tarefas/update/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/api/tarefas/update/:id', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { description } = req.body;
 
@@ -137,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Description is required" });
       }
 
-      const updated = await storage.updateTarefa(id, description, userId);
+      const updated = await storage.updateTarefa(id, description, DEFAULT_USER_ID);
       
       if (!updated) {
         return res.status(404).json({ error: "Tarefa not found or access denied" });
@@ -150,12 +131,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/tarefas/delete/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/tarefas/delete/:id', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { id } = req.params;
 
-      const deleted = await storage.deleteTarefa(id, userId);
+      const deleted = await storage.deleteTarefa(id, DEFAULT_USER_ID);
       
       if (!deleted) {
         return res.status(404).json({ error: "Tarefa not found or access denied" });
@@ -168,9 +148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/tarefas/change/:id', isAuthenticated, async (req: any, res) => {
+  app.post('/api/tarefas/change/:id', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { quadroId } = req.body;
 
@@ -178,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "quadroId is required" });
       }
 
-      const updated = await storage.changeTarefaQuadro(id, quadroId, userId);
+      const updated = await storage.changeTarefaQuadro(id, quadroId, DEFAULT_USER_ID);
       
       if (!updated) {
         return res.status(404).json({ error: "Tarefa not found or access denied" });

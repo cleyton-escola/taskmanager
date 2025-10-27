@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 
 [[ports]]
 localPort = 5000
@@ -12,6 +12,10 @@ exposeLocalhost = true
 [[ports]]
 localPort = 40045
 externalPort = 3000
+
+[[ports]]
+localPort = 42397
+externalPort = 3001
 
 [nix]
 channel = "stable-25_05"
