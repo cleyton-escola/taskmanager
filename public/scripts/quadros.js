@@ -3,7 +3,7 @@ $(function() {
     actionAddCard();
 
     $.ajax({
-        url: 'http://localhost/api/quadros?jwt=' + $.session.get('jwt'),
+        url: '/api/quadros',
         type: 'get',
         success : function(res) {
             if(res.length > 0) {                
@@ -62,7 +62,7 @@ $(function() {
     function removeCard(idCard) {
         var deletedCard = false;
         $.ajax({
-            url:'http://localhost/api/quadros/delete/' + idCard + '?jwt=' + $.session.get('jwt'),
+            url:'/api/quadros/delete/' + idCard,
             type: 'delete',
             async: false,
             success: function(res) {
@@ -128,7 +128,7 @@ $(function() {
         var newCard;
 
         $.ajax({
-            url: 'http://localhost/api/quadros/new' + '?jwt=' + $.session.get('jwt'),
+            url: '/api/quadros/new',
             type: 'post',
             dataType: 'json',
             data: {
@@ -144,7 +144,7 @@ $(function() {
                 }
             },
             error: function(e) {
-                console.log(e);                  					
+                console.log(e);                                                         
             }
         });
         return newCard;
@@ -153,7 +153,7 @@ $(function() {
     function removeTask(idTask) {
         var deletedTask = false;
         $.ajax({
-            url:'http://localhost/api/tarefas/delete/' + idTask + '?jwt=' + $.session.get('jwt'),
+            url:'/api/tarefas/delete/' + idTask,
             type: 'delete',
             success: function(e) {
                 deletedTask = true;               
@@ -171,12 +171,13 @@ $(function() {
         var updatedTask = [];
 
         $.ajax({
-            url:'http://localhost/api/tarefas/update/' + idTask + '?jwt=' + $.session.get('jwt'),
-            type: 'put',
+            url:'/api/tarefas/update/' + idTask,
+            type: 'post',
+            contentType: 'application/json',
             dataType: 'json',
-            data: JSON.stringify({id: idTask, tarefa, id_quadro: idCard}),
+            data: JSON.stringify({description: tarefa}),
             success: function(res) {
-                updatedTask.push(res.tarefa);
+                updatedTask.push(res);
             }, 
             error: function(e) {
                 console.log(e);
@@ -188,10 +189,11 @@ $(function() {
 
     function taskChangeCard(idTask, idCard) {
         $.ajax({
-            url:'http://localhost/api/tarefas/change/' + idTask + '?jwt=' + $.session.get('jwt'),
-            type: 'PATCH',
+            url:'/api/tarefas/change/' + idTask,
+            type: 'post',
+            contentType: 'application/json',
             dataType: 'json',
-            data: JSON.stringify({ id_quadro: idCard}),
+            data: JSON.stringify({ quadroId: idCard}),
             error: function(e) {
                 return e;
             }
@@ -203,8 +205,9 @@ $(function() {
         var updatedCard;
 
         $.ajax({
-            url:'http://localhost/api/quadros/update/' + idCard + '?jwt=' + $.session.get('jwt'),
-            type: 'put',
+            url:'/api/quadros/update/' + idCard,
+            type: 'post',
+            contentType: 'application/json',
             dataType: 'json',
             data: JSON.stringify({ description: description }),
             success: function(res) {
@@ -296,10 +299,10 @@ $(function() {
     function actionGetTasks(tasks) {
          $.each(tasks, ( i, task) => {
             var cards = $('.board-column').find('.board-column-header').filter(function(i) {
-                return $(this).data('dataId') === task.id_quadro;                              
+                return $(this).data('dataId') === task.quadroId;                              
             });                      
 
-            if(task.id_quadro === cards.data('data-id')) {
+            if(task.quadroId === cards.data('data-id')) {
                 $.each(cards, (i, card) =>  {
                     var templateTask = $.parseHTML($('#template-task').html().trim());                     
 
@@ -321,7 +324,7 @@ $(function() {
                     $(templateTask).dragAndDrop();
 
 
-                    $(templateTask).find('.text-item').text(task.tarefa);
+                    $(templateTask).find('.text-item').text(task.description);
                     $(card).parent().find('.list-card').append(templateTask);              
                 });
             }
@@ -330,7 +333,7 @@ $(function() {
 
     function getTasks(idCard) {
         $.ajax({
-            url: 'http://localhost/api/tarefas/card/' + idCard + '?jwt=' + $.session.get('jwt'),
+            url: '/api/tarefas/card/' + idCard,
             type: 'get',
             success: function(res) {            
                 if(res.length >  0) {   
@@ -366,12 +369,12 @@ $(function() {
 
                     nameNewTask = $(e.target).val();
 
-                    var taskEntered = $(cadastrarNewTask(nameNewTask, idCard));
-                    if(taskEntered) {
-                        var idTask = taskEntered[0].idTask;
+                    var taskEntered = cadastrarNewTask(nameNewTask, idCard);
+                    if(taskEntered && taskEntered.id) {
+                        var idTask = taskEntered.id;
                         $(templateTask).data('data-id', idTask);
 
-                        $(templateTask).find('.text-item').text($(taskEntered)[0].data.tarefa);                        
+                        $(templateTask).find('.text-item').text(taskEntered.description);                        
 
                         $(templateInputTask).remove();                        
 
@@ -383,8 +386,8 @@ $(function() {
                         $(templateInputTask).find('.field-name-task').change(function(e) {
                             var newNameTask = $(this).val();
 
-                            if(newNameTask != taskEntered) {
-                                updatedTask = $(updateTask(taskEntered[0].idTask, newNameTask));
+                            if(newNameTask != taskEntered.description) {
+                                updateTask(idTask, newNameTask, idCard);
                             
                                 $(templateTask).find('.text-item').text(newNameTask);
 
@@ -393,7 +396,7 @@ $(function() {
                         });
 
                         $(templateTask).find('.icons-task').on('click', function(e) {
-                            removeTask(taskEntered[0].idTask);
+                            removeTask(idTask);
                             $(this).parent().remove();
                         });
 
@@ -415,12 +418,12 @@ $(function() {
         var newTask;
 
         $.ajax({
-            url: 'http://localhost/api/tarefas/new' + '?jwt=' + $.session.get('jwt'),
+            url: '/api/tarefas/new',
             type: 'post',
             dataType: 'json',
             data: {
-                id_quadro: id_quadro,
-                tarefa: nameNewTask
+                quadroId: id_quadro,
+                description: nameNewTask
             },
             async: false,
             success: function(res) {
@@ -432,7 +435,7 @@ $(function() {
                 }
             },
             error: function(e) {
-                console.log(e);                  					
+                console.log(e);                                                         
             }
         });
         return newTask;

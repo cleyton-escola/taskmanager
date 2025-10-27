@@ -1,4 +1,3 @@
-
 (function($) {
     $.fn.dragAndDrop = function() {
         this.each(function() {          

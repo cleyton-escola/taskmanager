@@ -10,6 +10,12 @@
     <title> Quadros </title>
 </head>
 <body>
+    <div style="position: fixed; top: 10px; right: 20px; z-index: 1000;">
+        <button onclick="window.location.href='/api/logout'" style="padding: 10px 20px; background-color: #51c1e1; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+            Sair
+        </button>
+    </div>
+
     <div class="project-board">
         <div class="add-quadro-btn">
             <span class="material-icons"> add_circle_outline </span>
@@ -71,8 +77,20 @@
 
     <script type="text/javascript" src="./../../jquery-3.6.3.min.js"></script>
     <script type="text/javascript" src="./../../jquery-ui.min.js"></script>
+    <script>
+        $(function() {
+            $.ajax({
+                url: '/api/auth/user',
+                type: 'get',
+                error: function(xhr) {
+                    if (xhr.status === 401) {
+                        window.location.href = '/api/login';
+                    }
+                }
+            });
+        });
+    </script>
     <script src="../../scripts/quadros.js"></script>
-    <script src="../../session.js"></script>
     <script type="text/javascript" src="./../../dragAndDrop.js"></script>
 </body>
 </html>
