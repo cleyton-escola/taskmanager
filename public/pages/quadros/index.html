@@ -11,8 +11,8 @@
 </head>
 <body>
     <div style="position: fixed; top: 10px; right: 20px; z-index: 1000;">
-        <button onclick="window.location.href='/api/logout'" style="padding: 10px 20px; background-color: #51c1e1; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-            Sair
+        <button onclick="window.location.href='/'" style="padding: 10px 20px; background-color: #51c1e1; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+            Voltar
         </button>
     </div>
 
@@ -75,19 +75,6 @@
         <iframe src="../footer.html" frameborder="0"></iframe>
     </footer>
 
-    <script>
-        // Check authentication
-        fetch('/api/auth/user')
-            .then(response => {
-                if (!response.ok) {
-                    window.location.href = '/api/login';
-                }
-            })
-            .catch(() => {
-                window.location.href = '/api/login';
-            });
-    </script>
     <script src="../../scripts/quadros.js"></script>
-    <script src="../../scripts/dragAndDrop.js"></script>
 </body>
 </html>

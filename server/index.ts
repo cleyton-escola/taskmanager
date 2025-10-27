@@ -15,7 +15,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(express.static("public"));
+app.use(express.static("."));
+app.use(express.static("docs"));
 
 (async () => {
   const server = await registerRoutes(app);
