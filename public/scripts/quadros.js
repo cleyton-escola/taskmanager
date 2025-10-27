@@ -361,10 +361,14 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(result => {
             const template = document.getElementById('template-task');
             const clone = template.content.cloneNode(true);
-            clone.querySelector('.text-item').textContent = result.description;
+            const clonedTaskItem = clone.querySelector('.list-card-item');
+            clonedTaskItem.querySelector('.text-item').textContent = result.description;
             
             taskItem.innerHTML = '';
-            taskItem.appendChild(clone.querySelector('.list-card-item').childNodes);
+            // Append all child nodes from the cloned element
+            while (clonedTaskItem.firstChild) {
+                taskItem.appendChild(clonedTaskItem.firstChild);
+            }
             taskItem.dataset.id = idTask;
             taskItem.setAttribute('draggable', 'true');
             
