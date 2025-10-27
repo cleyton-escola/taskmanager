@@ -1,0 +1,207 @@
+:root {
+    --font-color: #5f5f5f;
+    --border-color: rgba(0,0,0,0.08);
+    --background-btn: #51c1e1;
+}
+
+body {
+  position: relative;
+  font-family: sans-serif;
+  font-size: 20px;
+  height: 75vh;
+  width: 100vw;
+  overflow: hidden;
+  top: 80px;
+  color: var(--font-color);
+}
+
+.project-board {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    box-sizing: border-box;
+    height: 80vh;
+    margin: 0;
+    padding: 10px 15px 15px 0;
+    font-size: 14px;
+    color: rgb(24, 29, 37);
+    flex-wrap: wrap;
+}
+
+.task-board {
+    box-sizing: border-box;
+    display: flex;
+    height: 83%;
+    position: relative;
+    flex-wrap: wrap;
+    overflow: auto;
+}
+
+.add-quadro-btn {
+    display: flex;
+    justify-content:space-around;
+    align-items: center;
+    margin: 20px;
+    border: 1px solid var(--border-color);
+    height: 40px;
+    width: auto;
+    border-radius: 8px;
+    background-color: var(--background-btn);
+    font-size: larger;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.name-card {
+    display: flex;
+    justify-content: center;
+    min-width: 195px;
+}
+
+.board-column {
+    box-sizing: border-box;
+    display: inline-block;
+    padding-right: 30px;
+    padding-top: 56px;
+    position: relative;
+    white-space: nowrap;
+    line-height: 20px;
+    width: 388px;
+    margin-top: 20px;
+    height: auto;
+}
+
+.board-column-header {
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 56px;
+    position: absolute;
+    top: 0;
+    width: 368px;
+    text-align: left;
+    text-size-adjust: 100%;
+    white-space: nowrap;
+}
+
+.icon-delete-card {
+    padding: 20px;
+    font-size: 40px;
+}
+
+.material-icons {
+    padding-right: 20px;
+    color: var(--font-color);
+    margin-left: 10px;
+    font-size: 30px;    
+}
+
+.board-column-body {
+    background-color: #f8f8f8;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    height: auto;
+    max-height: 100%;
+    overflow: hidden;
+    padding: 8px 10px 58px 10px;
+    position: relative;
+    width: 368px;
+}
+
+.text-item {
+    margin-left: 10px;
+    color: var(--font-color);
+}
+
+.column-name {
+    box-sizing: border-box;
+    margin: 0;
+    font-size: 16px;
+    line-height: 15px;
+    text-size-adjust: 100%;
+    white-space: nowrap;
+    cursor: pointer;
+    color: var(--font-color);
+}
+
+input[type='text'] {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    margin: 6px 10px 12px 10px;
+    height: 40px;
+    font-size: 24px;
+    padding-left: 9px;
+}
+
+.input-task {   
+    display: flex;
+    flex-direction: column-reverse;
+    position: relative;
+    text-size-adjust: 100%;
+    white-space: nowrap;
+    border-radius: 8px;
+    
+}    
+
+.list-card {
+    align-content: start;
+    box-sizing: border-box;
+    display: grid;
+    margin-bottom: 30px;
+    padding: 0;
+}
+
+.icon-trash {
+    color: #d16855;
+    font-size: 35px;
+}
+
+.add-task-btn {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.drag-indicator {
+    cursor: grab;
+}
+
+.icons-task {
+    display: flex;
+    align-items: center;
+    justify-content:space-around;
+}
+
+.list-card-item {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content:flex-start;
+    position: relative;
+    text-size-adjust: 100%;
+    white-space: nowrap;
+    border-radius: 8px;
+    margin: 6px 10px 12px 10px;
+    cursor: pointer;
+}
+
+.list-card-item > h3  {
+    min-width: 180px;
+}
+
+.footer {
+    opacity: 0.8;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    text-align: center;
+    background-color: var(--background-btn);
+    height: 10%;
+    width: 100vw;
+}

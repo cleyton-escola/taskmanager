@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/reset.css" />
+    <link rel="stylesheet" href="../../css/quadros/style.css" />
+    <title> Quadros </title>
+</head>
+<body>
+    <div class="project-board">
+        <div class="add-quadro-btn">
+            <span class="material-icons"> add_circle_outline </span>
+            <a href="#"> Adicionar quadro </a>
+        </div>
+
+        <ul class="task-board">
+            <!-- Load template cards html -->
+
+        </ul>
+    </div>
+
+    <template id="template-quadro">
+        <li class="board-column">
+
+            <div class="board-column-header">
+                <span class="material-icons icon-card"> dashboard </span>
+                <div class="column-name">                   
+                    <h2 class="name-card"> Nome do quadro </h2>
+                </div>
+                <span class="material-icons icon-delete-card"> bookmark_remove </span>
+            </div>
+            
+            <div class="board-column-body">
+                <ul class="list-card">
+                    <!-- Load template tasks html -->
+
+                </ul>
+
+                <div class="add-task-btn">
+                    <i class="material-icons">note_add</i>
+                    <a href="#"> Adicionar tarefa </a>
+                </div>
+            </div>               
+        </li>
+    </template>
+
+    <template id="template-task">
+        <li class="list-card-item">
+            <span class="material-icons drag-indicator"> reorder </span>
+            <h3 class="text-item">Cadastrar tarefa</h3>
+            <div class="icons-task">
+                <span class="material-icons icon-trash">delete_forever </span>
+
+            </div>           
+        </li>            
+    </template>
+
+    <template id="template-task-input">
+        <form action="" class="form" method="POST">
+            <input type="text" class="field-name-task" placeholder="Nome da tarefa">
+
+        </form>
+    </template>
+
+    <footer  class="footer">
+        <iframe src="../footer.html" frameborder="0"></iframe>
+    </footer>
+
+    <script type="text/javascript" src="./../../jquery-3.6.3.min.js"></script>
+    <script type="text/javascript" src="./../../jquery-ui.min.js"></script>
+    <script src="../../scripts/quadros.js"></script>
+    <script src="../../session.js"></script>
+    <script type="text/javascript" src="./../../dragAndDrop.js"></script>
+</body>
+</html>
