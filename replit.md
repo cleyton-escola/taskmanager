@@ -152,8 +152,8 @@ Preferred communication style: Simple, everyday language.
 - **drizzle-kit:** Database migration and schema management tools
 
 ### Client-Side Libraries
-- **jQuery 3.6.3 + jQuery UI 1.13.2:** Legacy choice for compatibility
 - **Material Icons:** Google's icon font for UI elements
+- **Note:** jQuery was completely removed on October 27, 2025. The application now uses only vanilla JavaScript.
 
 ### Environment Variables Required
 - `DATABASE_URL`: PostgreSQL connection string
