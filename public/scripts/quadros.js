@@ -1,443 +1,446 @@
+// Vanilla JavaScript - No jQuery
+document.addEventListener('DOMContentLoaded', function() {
+    setupAddCardButton();
+    loadQuadros();
 
-$(function() {
-    actionAddCard();
-
-    $.ajax({
-        url: '/api/quadros',
-        type: 'get',
-        success : function(res) {
-            if(res.length > 0) {                
-                $.each(res, ( i, card)  => {
-                    var templateCard = $.parseHTML($('#template-quadro').html().trim());
-
-                    $(templateCard).find('.name-card').text(card.description);                 
-                    $(templateCard).find('.board-column-header').data('data-id', card.id);
-                    
-                    var idCard = $(templateCard).find('.board-column-header').data('data-id');
-
-                    $(templateCard).find('.icon-delete-card').on('click', function() {
-
-                        actionDeleteCard($(this), idCard);
-                    });                    
-                        
-                    $(templateCard).find('.add-task-btn').on('click', function() {
-                        actionsAdicionaTask(idCard);
+    // Load all quadros from API
+    function loadQuadros() {
+        fetch('/api/quadros')
+            .then(response => response.json())
+            .then(quadros => {
+                if (quadros.length > 0) {
+                    quadros.forEach(card => {
+                        createCardElement(card);
                     });
+                }
+            })
+            .catch(error => console.error('Error loading quadros:', error));
+    }
 
-                    $(templateCard).find('.name-card').on('click', function() {
-                        var element = $(this).parent();
+    // Create card element from template
+    function createCardElement(card) {
+        const template = document.getElementById('template-quadro');
+        const clone = template.content.cloneNode(true);
+        
+        // Set card data
+        clone.querySelector('.name-card').textContent = card.description;
+        clone.querySelector('.board-column-header').dataset.id = card.id;
+        
+        const cardElement = clone.querySelector('.board-column');
+        const header = cardElement.querySelector('.board-column-header');
+        const idCard = card.id;
+        
+        // Setup delete button
+        const deleteBtn = clone.querySelector('.icon-delete-card');
+        deleteBtn.addEventListener('click', function() {
+            deleteCard(idCard, cardElement);
+        });
+        
+        // Setup add task button
+        const addTaskBtn = clone.querySelector('.add-task-btn');
+        addTaskBtn.addEventListener('click', function() {
+            showAddTaskInput(idCard, cardElement);
+        });
+        
+        // Setup card name edit
+        const nameCard = clone.querySelector('.name-card');
+        nameCard.addEventListener('click', function() {
+            editCardName(nameCard, idCard);
+        });
+        
+        // Setup drop zone
+        const dropZone = clone.querySelector('.board-column-body');
+        setupDropZone(dropZone, idCard);
+        
+        // Load tasks for this card
+        loadTasks(idCard, cardElement);
+        
+        // Append to board
+        document.querySelector('.task-board').appendChild(clone);
+    }
 
-                        updateNameCard(element, idCard);
-                    });                                 
+    // Delete card
+    function deleteCard(idCard, cardElement) {
+        fetch(`/api/quadros/delete/${idCard}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.error) {
+                cardElement.remove();
+            }
+        })
+        .catch(error => console.error('Error deleting card:', error));
+    }
 
-                    $(getTasks(idCard));                    
+    // Setup add card button
+    function setupAddCardButton() {
+        const addBtn = document.querySelector('.add-quadro-btn');
+        addBtn.addEventListener('click', function() {
+            showAddCardInput();
+        });
+    }
 
-                    $(templateCard).find('.board-column-body').drop();
-                    $(templateCard).find('.board-column-body').on('drop', function(e, ui) {
+    // Show input to add new card
+    function showAddCardInput() {
+        const template = document.getElementById('template-quadro');
+        const clone = template.content.cloneNode(true);
+        
+        const inputTemplate = document.getElementById('template-task-input');
+        const inputClone = inputTemplate.content.cloneNode(true);
+        
+        // Replace card name with input
+        const nameCard = clone.querySelector('.name-card');
+        const columnName = clone.querySelector('.column-name');
+        columnName.innerHTML = '';
+        columnName.appendChild(inputClone);
+        
+        const input = columnName.querySelector('.field-name-task');
+        
+        input.addEventListener('change', function() {
+            const cardName = input.value.trim();
+            if (cardName.length > 0) {
+                createNewCard(cardName, clone, columnName);
+            }
+        });
+        
+        document.querySelector('.task-board').appendChild(clone);
+        input.focus();
+    }
 
-                         $(ui)[0].draggable.data('data-id',  $(ui)[0].draggable.data('data-id') );
-                        var idTask = $(ui)[0].draggable.data('data-id');
-                        taskChangeCard(idTask, idCard);                                                  
-                    });
-
-                    $('.task-board').append(templateCard);                 
+    // Create new card via API
+    function createNewCard(description, clonedElement, columnName) {
+        fetch('/api/quadros/new', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description })
+        })
+        .then(response => response.json())
+        .then(newCard => {
+            if (!newCard.error) {
+                // Update the element with real data
+                const cardElement = clonedElement.querySelector ? clonedElement.querySelector('.board-column') : clonedElement;
+                const header = cardElement.querySelector('.board-column-header');
+                header.dataset.id = newCard.id;
+                
+                columnName.innerHTML = `<h2 class="name-card">${newCard.description}</h2>`;
+                
+                const nameCard = columnName.querySelector('.name-card');
+                nameCard.addEventListener('click', function() {
+                    editCardName(nameCard, newCard.id);
                 });
-            } else {
-                $('span').text('');
-                $("<span>" +  res['error']  + "</span>").before('.add-quadro-btn');
-            };        
-        },
-        error: function(e) {
-            console.log(e);
+                
+                // Setup delete button
+                const deleteBtn = cardElement.querySelector('.icon-delete-card');
+                deleteBtn.addEventListener('click', function() {
+                    deleteCard(newCard.id, cardElement);
+                });
+                
+                // Setup add task button
+                const addTaskBtn = cardElement.querySelector('.add-task-btn');
+                addTaskBtn.addEventListener('click', function() {
+                    showAddTaskInput(newCard.id, cardElement);
+                });
+                
+                // Setup drop zone
+                const dropZone = cardElement.querySelector('.board-column-body');
+                setupDropZone(dropZone, newCard.id);
+            }
+        })
+        .catch(error => console.error('Error creating card:', error));
+    }
+
+    // Edit card name
+    function editCardName(nameElement, idCard) {
+        const currentName = nameElement.textContent.trim();
+        const inputTemplate = document.getElementById('template-task-input');
+        const inputClone = inputTemplate.content.cloneNode(true);
+        const input = inputClone.querySelector('.field-name-task');
+        
+        input.value = currentName;
+        
+        const parent = nameElement.parentElement;
+        parent.innerHTML = '';
+        parent.appendChild(inputClone);
+        
+        const inputField = parent.querySelector('.field-name-task');
+        inputField.focus();
+        
+        inputField.addEventListener('blur', function() {
+            parent.innerHTML = `<h2 class="name-card">${currentName}</h2>`;
+            const newNameCard = parent.querySelector('.name-card');
+            newNameCard.addEventListener('click', function() {
+                editCardName(newNameCard, idCard);
+            });
+        });
+        
+        inputField.addEventListener('change', function() {
+            const newName = inputField.value.trim();
+            if (newName.length > 0) {
+                updateCardName(idCard, newName, parent);
+            }
+        });
+    }
+
+    // Update card name via API
+    function updateCardName(idCard, description, parent) {
+        fetch(`/api/quadros/update/${idCard}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.description) {
+                parent.innerHTML = `<h2 class="name-card">${result.description}</h2>`;
+                const newNameCard = parent.querySelector('.name-card');
+                newNameCard.addEventListener('click', function() {
+                    editCardName(newNameCard, idCard);
+                });
+            }
+        })
+        .catch(error => console.error('Error updating card:', error));
+    }
+
+    // Load tasks for a card
+    function loadTasks(idCard, cardElement) {
+        fetch(`/api/tarefas/card/${idCard}`)
+            .then(response => response.json())
+            .then(tasks => {
+                if (tasks.length > 0) {
+                    tasks.forEach(task => {
+                        createTaskElement(task, cardElement);
+                    });
+                }
+            })
+            .catch(error => console.error('Error loading tasks:', error));
+    }
+
+    // Create task element
+    function createTaskElement(task, cardElement) {
+        const template = document.getElementById('template-task');
+        const clone = template.content.cloneNode(true);
+        
+        const taskItem = clone.querySelector('.list-card-item');
+        taskItem.dataset.id = task.id;
+        taskItem.setAttribute('draggable', 'true');
+        
+        clone.querySelector('.text-item').textContent = task.description;
+        
+        // Setup delete button
+        const deleteBtn = clone.querySelector('.icon-trash');
+        deleteBtn.addEventListener('click', function() {
+            deleteTask(task.id, taskItem);
+        });
+        
+        // Setup edit on click
+        const textItem = clone.querySelector('.text-item');
+        textItem.addEventListener('click', function() {
+            editTaskName(textItem, task.id, task.quadroId);
+        });
+        
+        // Setup drag and drop
+        setupDraggable(taskItem);
+        
+        const listCard = cardElement.querySelector('.list-card');
+        listCard.appendChild(clone);
+    }
+
+    // Show add task input
+    function showAddTaskInput(idCard, cardElement) {
+        const listCard = cardElement.querySelector('.list-card');
+        
+        // Check if there's already an input
+        if (listCard.querySelector('.form')) {
+            return;
         }
-    });
-
-    function actionDeleteCard(element, idCard) {
-        var cardDeleted = removeCard(idCard);
-        if(cardDeleted) {
-            $(element).parent().parent().remove();
-        };    
-    };
-
-    function removeCard(idCard) {
-        var deletedCard = false;
-        $.ajax({
-            url:'/api/quadros/delete/' + idCard,
-            type: 'delete',
-            async: false,
-            success: function(res) {
-                if(!res['error']) {
-                    deletedCard = true;
-                }                
-            },
-            error: function(e) {
-                console.log(e);
-                return e;
+        
+        const inputTemplate = document.getElementById('template-task-input');
+        const inputClone = inputTemplate.content.cloneNode(true);
+        const input = inputClone.querySelector('.field-name-task');
+        
+        listCard.appendChild(inputClone);
+        
+        const inputField = listCard.querySelector('.field-name-task');
+        inputField.focus();
+        
+        inputField.addEventListener('blur', function() {
+            const form = inputField.closest('.form');
+            if (form) {
+                form.remove();
             }
         });
-        return deletedCard;
-    };
-
-    function actionAddCard() {
-        $('.add-quadro-btn').on('click', function() {
-            var templateCard = $.parseHTML($('#template-quadro').html().trim());
-            var templateInput = $.parseHTML($('#template-task-input').html().trim());
-
-            $(templateCard).find('.name-card').replaceWith(templateInput);       
-
-            $(templateInput).find('.field-name-task').on('change', function(e) {
-                var textNewNameCard = $(this).val();                
-
-                if(textNewNameCard.length > 0) {
-                    var { id, description } = cadastrarNewCard(textNewNameCard);
-
-                    $(templateCard).find('.board-column-header').data('data-id', id);
-
-                    var idCard = $(templateCard).find('.board-column-header').data('data-id');
-
-                    $(templateCard).find('.board-column-header > .column-name').html('<h2 class="name-card">' + description + '</h2>');
-
-                    $(templateCard).find('.icon-delete-card').on('click', function() {
-
-                        actionDeleteCard($(this), id);
-                    });
-
-                    $(templateCard).find('.board-column-body').drop();
-
-                    $(templateCard).find('.board-column-body').on('drop', function(e, ui) {
-
-                        var idTask = ($(ui)[0].draggable.data('data-id'));
-
-                        taskChangeCard(idTask, idCard);                                                                                         
-                    });
-
-                    actionsAdicionaTask(id);
-                };                        
-            });
-
-            $('.task-board').append(templateCard);
-        });
-    };
-
-    function cadastrarNewCard(textNewNameCard) {
         
-        $('.form').submit(function(e) {
+        inputField.addEventListener('change', function() {
+            const taskName = inputField.value.trim();
+            if (taskName.length > 0) {
+                createNewTask(taskName, idCard, cardElement);
+                const form = inputField.closest('.form');
+                if (form) {
+                    form.remove();
+                }
+            }
+        });
+    }
+
+    // Create new task via API
+    function createNewTask(description, quadroId, cardElement) {
+        fetch('/api/tarefas/new', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description, quadroId })
+        })
+        .then(response => response.json())
+        .then(newTask => {
+            if (!newTask.error) {
+                createTaskElement(newTask, cardElement);
+            }
+        })
+        .catch(error => console.error('Error creating task:', error));
+    }
+
+    // Delete task
+    function deleteTask(idTask, taskElement) {
+        fetch(`/api/tarefas/delete/${idTask}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(result => {
+            taskElement.remove();
+        })
+        .catch(error => console.error('Error deleting task:', error));
+    }
+
+    // Edit task name
+    function editTaskName(textElement, idTask, idCard) {
+        const currentName = textElement.textContent.trim();
+        const inputTemplate = document.getElementById('template-task-input');
+        const inputClone = inputTemplate.content.cloneNode(true);
+        const input = inputClone.querySelector('.field-name-task');
+        
+        input.value = currentName;
+        
+        const taskItem = textElement.closest('.list-card-item');
+        const originalHTML = taskItem.innerHTML;
+        
+        taskItem.innerHTML = '';
+        taskItem.appendChild(inputClone);
+        
+        const inputField = taskItem.querySelector('.field-name-task');
+        inputField.focus();
+        
+        inputField.addEventListener('blur', function() {
+            taskItem.innerHTML = originalHTML;
+            setupTaskEvents(taskItem, idTask, idCard);
+        });
+        
+        inputField.addEventListener('change', function() {
+            const newName = inputField.value.trim();
+            if (newName.length > 0 && newName !== currentName) {
+                updateTaskName(idTask, newName, taskItem, idCard);
+            }
+        });
+    }
+
+    // Update task name via API
+    function updateTaskName(idTask, description, taskItem, idCard) {
+        fetch(`/api/tarefas/update/${idTask}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description })
+        })
+        .then(response => response.json())
+        .then(result => {
+            const template = document.getElementById('template-task');
+            const clone = template.content.cloneNode(true);
+            clone.querySelector('.text-item').textContent = result.description;
+            
+            taskItem.innerHTML = '';
+            taskItem.appendChild(clone.querySelector('.list-card-item').childNodes);
+            taskItem.dataset.id = idTask;
+            taskItem.setAttribute('draggable', 'true');
+            
+            setupTaskEvents(taskItem, idTask, idCard);
+            setupDraggable(taskItem);
+        })
+        .catch(error => console.error('Error updating task:', error));
+    }
+
+    // Setup task events
+    function setupTaskEvents(taskItem, idTask, idCard) {
+        const deleteBtn = taskItem.querySelector('.icon-trash');
+        deleteBtn.addEventListener('click', function() {
+            deleteTask(idTask, taskItem);
+        });
+        
+        const textItem = taskItem.querySelector('.text-item');
+        textItem.addEventListener('click', function() {
+            editTaskName(textItem, idTask, idCard);
+        });
+        
+        setupDraggable(taskItem);
+    }
+
+    // Move task to different card
+    function moveTaskToCard(idTask, newQuadroId) {
+        fetch(`/api/tarefas/change/${idTask}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quadroId: newQuadroId })
+        })
+        .catch(error => console.error('Error moving task:', error));
+    }
+
+    // Setup drag and drop for tasks
+    function setupDraggable(taskElement) {
+        taskElement.addEventListener('dragstart', function(e) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', taskElement.innerHTML);
+            e.dataTransfer.setData('taskId', taskElement.dataset.id);
+            taskElement.classList.add('dragging');
+        });
+        
+        taskElement.addEventListener('dragend', function(e) {
+            taskElement.classList.remove('dragging');
+        });
+    }
+
+    // Setup drop zone for cards
+    function setupDropZone(dropZone, idCard) {
+        dropZone.addEventListener('dragover', function(e) {
             e.preventDefault();
-        });
-
-        var newCard;
-
-        $.ajax({
-            url: '/api/quadros/new',
-            type: 'post',
-            dataType: 'json',
-            data: {
-                description: textNewNameCard,
-            },
-            async: false,
-            success: function(res) {
-                if(res['error']) {
-                    $('span').text('');
-                    $("<span>" +  res['error']  + "</span>").insertAfter('.field-password');
-                } else {
-                    newCard = res;
-                }
-            },
-            error: function(e) {
-                console.log(e);                                                         
-            }
-        });
-        return newCard;
-    };
-
-    function removeTask(idTask) {
-        var deletedTask = false;
-        $.ajax({
-            url:'/api/tarefas/delete/' + idTask,
-            type: 'delete',
-            success: function(e) {
-                deletedTask = true;               
-            },
-            error: function(e) {
-                console.log(e);
-                return e;
-            }
-        });
-
-        return deletedTask;
-    };
-
-    function updateTask(idTask, tarefa, idCard) {        
-        var updatedTask = [];
-
-        $.ajax({
-            url:'/api/tarefas/update/' + idTask,
-            type: 'post',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify({description: tarefa}),
-            success: function(res) {
-                updatedTask.push(res);
-            }, 
-            error: function(e) {
-                console.log(e);
-                return e;
-            }
-        });
-        return updatedTask;
-    };
-
-    function taskChangeCard(idTask, idCard) {
-        $.ajax({
-            url:'/api/tarefas/change/' + idTask,
-            type: 'post',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify({ quadroId: idCard}),
-            error: function(e) {
-                return e;
-            }
-        });       
-        return true;
-    };
-
-    function updateCard(description, idCard) {       
-        var updatedCard;
-
-        $.ajax({
-            url:'/api/quadros/update/' + idCard,
-            type: 'post',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify({ description: description }),
-            success: function(res) {
-                if(res.description.length > 0) {
-                    updatedCard = res.description;
-                }
-            }, 
-            error: function(e) {
-                console.log(e);
-                return e;
-            }
-        });
-        return updatedCard;
-    };
-
-    function updateNameTask(element, idTask, idCard) {
-       
-        var templateTask = $.parseHTML($('#template-task').html().trim());
-        var templateInputTask = $.parseHTML($('#template-task-input').html().trim());        
-
-        var nameTaskEdit = $(element).text();
-
-        $(templateInputTask).find('.field-name-task').attr('value', nameTaskEdit);
-        $(element).parent().replaceWith(templateInputTask);
-
-        $(templateInputTask).find('.field-name-task').focus();
-
-        $(templateInputTask).find('.field-name-task').focusout(function() {
-
-            var newNameTask = $(this).val();
-              
-            $(templateTask).find('.text-item').text(newNameTask);
-            $(this).parent().replaceWith(templateTask);                        
-        });
-
-        $(templateInputTask).find('.field-name-task').on('change', function() {
-            var newNameTask = $(this).val();
-
-            updateTask(idTask, newNameTask, idCard);
-
-            $(templateTask).find('.text-item').text(newNameTask);
-            $(templateInputTask).find('.form').remove();    
-            $($(this).parent()).replaceWith(templateTask);                                               
-        });
-
-        $(templateTask).find('.text-item').on('click', function(e) {
-
-            updateNameTask($(this), idTask, idCard);
+            e.dataTransfer.dropEffect = 'move';
+            dropZone.style.backgroundColor = '#ffc637';
         });
         
-        $(templateTask).find('.icons-task').on('click', function(e) {
-            removeTask(idTask);
-            $(this).parent().remove();
+        dropZone.addEventListener('dragleave', function(e) {
+            dropZone.style.backgroundColor = '#f8f8f8';
         });
         
-        $(templateTask).dragAndDrop();
-    };
-
-    function updateNameCard(element, idCard) {
-        var templateInputTask = $.parseHTML($('#template-task-input').html().trim());
-        var nameCardEdit = element.text().trim();
-        
-        $(templateInputTask).find('.field-name-task').attr('value', nameCardEdit);
-        $(element).replaceWith(templateInputTask);
-        $(templateInputTask).find('.field-name-task').focus();
-
-        $(templateInputTask).find('.field-name-task').focusout(function() {
-            $(this).replaceWith(element);
-            $('.icon-delete-card').show(1000);
-            $('.icon-card').show(1000);
-        });
-
-        $(element).on('click', function() {
-            $('.icon-card').hide(900);
-            $('.icon-delete-card').hide(900);
-            updateNameCard($(this), idCard);
-        });
-
-        $(templateInputTask).find('.field-name-task').change(function() {
-            var newNameCard = $(templateInputTask).find('.field-name-task').val();
-
-            updateCard(newNameCard, idCard);
-
-            $(element).find('.name-card').text(newNameCard);
-            $(this).replaceWith(element);
-        });
-    };
-
-    function actionGetTasks(tasks) {
-         $.each(tasks, ( i, task) => {
-            var cards = $('.board-column').find('.board-column-header').filter(function(i) {
-                return $(this).data('dataId') === task.quadroId;                              
-            });                      
-
-            if(task.quadroId === cards.data('data-id')) {
-                $.each(cards, (i, card) =>  {
-                    var templateTask = $.parseHTML($('#template-task').html().trim());                     
-
-                    $(templateTask).find('.icons-task').on('click', function(e) {
-                        if($(removeTask(task.id))) {
-                            $(templateTask).remove();
-                        };                                    
-                    });                 
-
-                    $(templateTask).find('.text-item').on('click', function(e) {
-                        if($('.list-card').find('.form').length == 0) {
-                            var idCard = $(card).data('data-id');
-                            updateNameTask(this, task.id, idCard);
-                        }                        
-                    });
-
-                    $(templateTask).data('data-id', task.id);                            
-
-                    $(templateTask).dragAndDrop();
-
-
-                    $(templateTask).find('.text-item').text(task.description);
-                    $(card).parent().find('.list-card').append(templateTask);              
-                });
-            }
-        });
-    };
-
-    function getTasks(idCard) {
-        $.ajax({
-            url: '/api/tarefas/card/' + idCard,
-            type: 'get',
-            success: function(res) {            
-                if(res.length >  0) {   
-                    actionGetTasks(res);
-                } else {
-                    return false;
-                }        
-            },
-            error: function(e) {
-                console.log(e);
-                return e;
-            }
-        });
-    };
-
-    function actionsAdicionaTask(idCard) {
-        $('.add-task-btn').on('click', function(e) {
-            var templateInputTask = $.parseHTML($('#template-task-input').html().trim());
-            var templateTask = $.parseHTML($('#template-task').html().trim());
-            var addTask = $(this).parent().find('.list-card');            
-
-            if($(addTask).find('.form').length === 0) {                
-                $(addTask).append(templateInputTask);
-            };
-
-            $(templateInputTask).find('.field-name-task').focus();
-            $(templateInputTask).find('.field-name-task').focusout(function() {                
-                $(this).parent().remove();                     
-            });
-
-            $(templateInputTask).change(function(e) {     
-                if($(e.target).val().length > 0) {                
-
-                    nameNewTask = $(e.target).val();
-
-                    var taskEntered = cadastrarNewTask(nameNewTask, idCard);
-                    if(taskEntered && taskEntered.id) {
-                        var idTask = taskEntered.id;
-                        $(templateTask).data('data-id', idTask);
-
-                        $(templateTask).find('.text-item').text(taskEntered.description);                        
-
-                        $(templateInputTask).remove();                        
-
-                        $(templateTask).find('.text-item').on('click', function() {
-                            
-                            updateNameTask($(this), idTask, idCard);                            
-                        });                  
-
-                        $(templateInputTask).find('.field-name-task').change(function(e) {
-                            var newNameTask = $(this).val();
-
-                            if(newNameTask != taskEntered.description) {
-                                updateTask(idTask, newNameTask, idCard);
-                            
-                                $(templateTask).find('.text-item').text(newNameTask);
-
-                                $($(this)).replaceWith(templateTask);                                                                                                      
-                            }; 
-                        });
-
-                        $(templateTask).find('.icons-task').on('click', function(e) {
-                            removeTask(idTask);
-                            $(this).parent().remove();
-                        });
-
-                        $(templateTask).dragAndDrop();            
-
-                        $(addTask).append(templateTask);     
-                    }                   
-                }
-            });
-        });            
-    };
-
-    function cadastrarNewTask(nameNewTask, id_quadro) {
-
-        $('.form').submit(function(e) {
+        dropZone.addEventListener('drop', function(e) {
             e.preventDefault();
-        });
-
-        var newTask;
-
-        $.ajax({
-            url: '/api/tarefas/new',
-            type: 'post',
-            dataType: 'json',
-            data: {
-                quadroId: id_quadro,
-                description: nameNewTask
-            },
-            async: false,
-            success: function(res) {
-                if(res['error']) {
-                    $('span').text('');
-                    $("<span>" +  res['error']  + "</span>").insertAfter('.field-password');
-                } else {
-                    newTask = res;
-                }
-            },
-            error: function(e) {
-                console.log(e);                                                         
+            dropZone.style.backgroundColor = '#f8f8f8';
+            
+            const taskId = e.dataTransfer.getData('taskId');
+            const draggingElement = document.querySelector('.dragging');
+            
+            if (draggingElement && taskId) {
+                const listCard = dropZone.querySelector('.list-card');
+                listCard.appendChild(draggingElement);
+                
+                // Update task's quadroId in backend
+                moveTaskToCard(taskId, idCard);
             }
         });
-        return newTask;
     }
 });
