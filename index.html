@@ -46,16 +46,13 @@
 					if (user && user.id) {
 						window.location.href = "/pages/quadros/index.html";
 					} else {
-						document.getElementById("loading").style.display =
-							"none";
-						document.getElementById("landing-page").style.display =
-							"block";
+						document.getElementById("loading").style.display = "none";
+						document.getElementById("landing-page").style.display = "block";
 					}
 				})
 				.catch(() => {
 					document.getElementById("loading").style.display = "none";
-					document.getElementById("landing-page").style.display =
-						"block";
+					document.getElementById("landing-page").style.display = "block";
 				});
 		</script>
 	</body>
