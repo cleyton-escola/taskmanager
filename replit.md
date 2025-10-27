@@ -2,30 +2,40 @@
 
 ## Overview
 
-A Kanban-style task management application built with Express.js backend and jQuery frontend. The application allows users to organize tasks into customizable boards (quadros) with drag-and-drop functionality. Users authenticate via Replit's OpenID Connect (OIDC) system, and their data persists in a PostgreSQL database managed through Drizzle ORM.
+A Kanban-style task management application built with Express.js backend and vanilla JavaScript frontend. The application allows users to organize tasks into customizable boards (quadros) with drag-and-drop functionality. Users authenticate via Replit's OpenID Connect (OIDC) system, and their data persists in a PostgreSQL database managed through Drizzle ORM.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Changes (October 27, 2025)
+
+- Removed jQuery dependency completely from the frontend
+- Converted all code to vanilla JavaScript (ES6+)
+- Implemented native HTML5 Drag and Drop API for task dragging
+- Replaced $.ajax() with native Fetch API
+- Replaced jQuery DOM manipulation with querySelector/querySelectorAll and native methods
+- Improved performance by removing large jQuery libraries (~350KB saved)
 
 ## System Architecture
 
 ### Frontend Architecture
 
 **Technology Stack:**
-- jQuery 3.6.3 for DOM manipulation and AJAX requests
-- jQuery UI for drag-and-drop interactions
-- Vanilla HTML/CSS for presentation
+- Vanilla JavaScript (ES6+) for all client-side logic
+- Native Fetch API for AJAX requests
+- HTML5 Drag and Drop API for drag-and-drop interactions
+- HTML/CSS for presentation
 
 **Key Design Decisions:**
 
-1. **jQuery-based SPA:** The application uses jQuery for client-side interactivity rather than modern frameworks. This provides simplicity and familiarity but limits scalability for complex state management.
+1. **Vanilla JavaScript SPA:** The application uses pure JavaScript without frameworks or libraries. This provides maximum performance, smaller bundle size, and no external dependencies while maintaining simplicity.
 
-2. **Drag-and-Drop Plugin:** Custom jQuery plugins (`dragAndDrop.js`) extend jQuery's functionality to enable dragging tasks between boards. The plugin wraps jQuery UI's draggable/droppable functionality with application-specific logic.
+2. **HTML5 Drag-and-Drop:** Native browser APIs (dragstart, dragend, dragover, drop events) handle task dragging between boards without any third-party libraries.
 
-3. **Session Management:** Client-side session handling through `session.js` uses cookies and window.name for session tracking, providing fallback mechanisms when sessionStorage is unavailable.
+3. **Modern Fetch API:** All HTTP requests use the native Fetch API with Promises, providing clean async/await patterns for API communication.
 
-4. **Template-based Rendering:** Uses HTML `<template>` elements for dynamic content generation, parsed and populated via jQuery's DOM manipulation methods.
+4. **Template-based Rendering:** Uses HTML `<template>` elements for dynamic content generation, cloned and populated via native DOM methods like cloneNode(), querySelector(), and textContent.
 
 ### Backend Architecture
 

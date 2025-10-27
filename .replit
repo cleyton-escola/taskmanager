@@ -9,6 +9,10 @@ localPort = 5173
 externalPort = 8080
 exposeLocalhost = true
 
+[[ports]]
+localPort = 40045
+externalPort = 3000
+
 [nix]
 channel = "stable-25_05"
 
