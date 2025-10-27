@@ -87,23 +87,30 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const input = columnName.querySelector('.field-name-task');
         
-        input.addEventListener('change', function() {
-            const cardName = input.value.trim();
+        // Append to DOM first, then get reference to the actual element
+        const taskBoard = document.querySelector('.task-board');
+        taskBoard.appendChild(clone);
+        
+        // Now get the actual element from the DOM (last child)
+        const insertedCard = taskBoard.lastElementChild;
+        const insertedInput = insertedCard.querySelector('.field-name-task');
+        const insertedColumnName = insertedCard.querySelector('.column-name');
+        
+        insertedInput.focus();
+        
+        insertedInput.addEventListener('change', function() {
+            const cardName = insertedInput.value.trim();
             if (cardName.length > 0) {
-                createNewCard(cardName, clone, columnName);
+                createNewCard(cardName, insertedCard, insertedColumnName);
             }
         });
-        
-        document.querySelector('.task-board').appendChild(clone);
-        input.focus();
     }
 
     // Create new card
-    function createNewCard(description, clonedElement, columnName) {
+    function createNewCard(description, cardElement, columnName) {
         const newCard = storage.createQuadro(description);
         
         // Update the element with real data
-        const cardElement = clonedElement.querySelector ? clonedElement.querySelector('.board-column') : clonedElement;
         const header = cardElement.querySelector('.board-column-header');
         header.dataset.id = newCard.id;
         
